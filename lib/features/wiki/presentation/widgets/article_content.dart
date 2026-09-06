@@ -1,6 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import '../../../../core/layout/app_layout.dart';
 import '../../../../core/localization/app_strings.dart';
 import '../../domain/wiki_article.dart';
@@ -33,65 +32,63 @@ class _PagedArticle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: onOpenDetail,
-      onLongPress: () => _copyArticleText(context, article),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(
-          24,
-          10,
-          24,
-          AppLayout.pagedBottomReserve,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _ArticleHeader(article: article, maxTitleLines: 3),
-            const SizedBox(height: 16),
-            if (article.thumbnailUrl != null) ...[
-              _ArticleImage(article: article, height: 218, useHero: false),
-              const SizedBox(height: 18),
-            ],
-            Expanded(
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  ShaderMask(
-                    blendMode: BlendMode.dstIn,
-                    shaderCallback: (bounds) => const LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        Colors.black,
-                        Colors.black,
-                        Colors.transparent,
-                      ],
-                      stops: [0, 0.62, 0.94],
-                    ).createShader(bounds),
-                    child: Align(
-                      alignment: Alignment.topLeft,
-                      child: Text(
-                        article.extract,
-                        maxLines: 8,
-                        overflow: TextOverflow.clip,
-                        style: theme.textTheme.bodyLarge?.copyWith(
-                          height: 1.58,
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        24,
+        10,
+        24,
+        AppLayout.pagedBottomReserve,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: onOpenDetail,
+            child: _ArticleHeader(article: article, maxTitleLines: 3),
+          ),
+          const SizedBox(height: 16),
+          if (article.thumbnailUrl != null) ...[
+            _ArticleImage(article: article, height: 218, useHero: false),
+            const SizedBox(height: 18),
+          ],
+          Expanded(
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                ShaderMask(
+                  blendMode: BlendMode.dstIn,
+                  shaderCallback: (bounds) => const LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.black,
+                      Colors.black,
+                      Colors.transparent,
+                    ],
+                    stops: [0, 0.72, 1],
+                  ).createShader(bounds),
+                  child: SelectionArea(
+                    contextMenuBuilder: _regionSelectionOnlyMenu,
+                    child: Text(
+                      article.extract,
+                      overflow: TextOverflow.clip,
+                      style: theme.textTheme.bodyLarge?.copyWith(
+                        height: 1.58,
+                        color: theme.colorScheme.onSurfaceVariant,
                       ),
                     ),
                   ),
-                  Positioned(
-                    left: 0,
-                    bottom: 6,
-                    child: _WikiButton(article: article),
-                  ),
-                ],
-              ),
+                ),
+                Positioned(
+                  left: 0,
+                  bottom: 6,
+                  child: _WikiButton(article: article),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -124,6 +121,7 @@ class _FullArticle extends StatelessWidget {
             ],
             SelectableText(
               article.extract,
+              contextMenuBuilder: _selectionOnlyMenu,
               style: theme.textTheme.bodyLarge?.copyWith(
                 height: 1.65,
                 color: theme.colorScheme.onSurfaceVariant,
@@ -171,7 +169,11 @@ class _ArticleHeader extends StatelessWidget {
           SizedBox(height: selectable ? 10 : 8),
         ],
         if (selectable)
-          SelectableText(article.title, style: titleStyle)
+          SelectableText(
+            article.title,
+            style: titleStyle,
+            contextMenuBuilder: _selectionOnlyMenu,
+          )
         else
           Text(
             article.title,
@@ -219,14 +221,12 @@ class _ArticleImage extends StatelessWidget {
   }
 }
 
-Future<void> _copyArticleText(BuildContext context, WikiArticle article) async {
-  await Clipboard.setData(
-    ClipboardData(text: '${article.title}\n\n${article.extract}'),
-  );
-  if (!context.mounted) return;
-  ScaffoldMessenger.of(context)
-    ..hideCurrentSnackBar()
-    ..showSnackBar(SnackBar(content: Text(AppStrings.of(context).copied)));
+Widget _selectionOnlyMenu(BuildContext _, EditableTextState _) {
+  return const SizedBox.shrink();
+}
+
+Widget _regionSelectionOnlyMenu(BuildContext _, SelectableRegionState _) {
+  return const SizedBox.shrink();
 }
 
 void _showImagePreview(
@@ -234,38 +234,58 @@ void _showImagePreview(
   WikiArticle article, {
   required bool useHero,
 }) {
-  final image = CachedNetworkImage(imageUrl: article.thumbnailUrl!);
   showDialog<void>(
     context: context,
     barrierColor: Colors.black87,
+    barrierDismissible: true,
     builder: (context) {
       final colors = Theme.of(context).colorScheme;
-      return Dialog.fullscreen(
-        backgroundColor: Colors.transparent,
+      final size = MediaQuery.sizeOf(context);
+      final image = CachedNetworkImage(
+        imageUrl: article.thumbnailUrl!,
+        fit: BoxFit.contain,
+      );
+      return Material(
+        type: MaterialType.transparency,
         child: Stack(
           children: [
-            Center(
-              child: InteractiveViewer(
-                minScale: 0.8,
-                maxScale: 4,
-                child: useHero
-                    ? Hero(tag: article.imageHeroTag, child: image)
-                    : image,
+            Positioned.fill(
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () => Navigator.pop(context),
               ),
             ),
             SafeArea(
               child: Align(
-                alignment: Alignment.bottomCenter,
                 child: Padding(
-                  padding: const EdgeInsets.only(bottom: 28),
-                  child: FilledButton.icon(
-                    style: FilledButton.styleFrom(
-                      backgroundColor: colors.surface,
-                      foregroundColor: colors.onSurface,
-                    ),
-                    onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.close),
-                    label: Text(AppStrings.of(context).closePreview),
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      ConstrainedBox(
+                        constraints: BoxConstraints(
+                          maxWidth: size.width - 40,
+                          maxHeight: size.height * 0.72,
+                        ),
+                        child: InteractiveViewer(
+                          minScale: 0.8,
+                          maxScale: 4,
+                          child: useHero
+                              ? Hero(tag: article.imageHeroTag, child: image)
+                              : image,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      FilledButton.icon(
+                        style: FilledButton.styleFrom(
+                          backgroundColor: colors.surface,
+                          foregroundColor: colors.onSurface,
+                        ),
+                        onPressed: () => Navigator.pop(context),
+                        icon: const Icon(Icons.close),
+                        label: Text(AppStrings.of(context).closePreview),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -289,6 +309,7 @@ class _WikiButton extends StatelessWidget {
       onPressed: () => openWikipedia(context, article),
       style: OutlinedButton.styleFrom(
         foregroundColor: colors.onSurface,
+        backgroundColor: colors.surface,
         side: BorderSide(color: colors.outlineVariant),
         shape: const StadiumBorder(),
         padding: const EdgeInsets.fromLTRB(16, 10, 18, 10),

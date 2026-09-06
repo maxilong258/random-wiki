@@ -20,7 +20,6 @@ class AppStrings {
       isChinese ? '确认取消收藏？' : 'Remove from favorites?';
   String get cancel => isChinese ? '取消' : 'Cancel';
   String get confirm => isChinese ? '确认' : 'Confirm';
-  String get copied => isChinese ? '已复制词条文字' : 'Article text copied';
   String get backToTop => isChinese ? '返回顶部' : 'Back to top';
   String get contentLanguage =>
       isChinese ? '内容与界面语言' : 'Content & app language';
