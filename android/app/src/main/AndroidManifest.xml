@@ -45,11 +45,11 @@
         </intent>
         <intent>
             <action android:name="android.intent.action.VIEW"/>
-            <data android:scheme="https" android:host="zh.wikipedia.org"/>
+            <data android:scheme="https"/>
         </intent>
         <intent>
             <action android:name="android.intent.action.VIEW"/>
-            <data android:scheme="https" android:host="en.wikipedia.org"/>
+            <data android:scheme="http"/>
         </intent>
         <intent>
             <action android:name="android.intent.action.PROCESS_TEXT"/>

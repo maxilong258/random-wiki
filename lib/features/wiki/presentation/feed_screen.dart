@@ -68,15 +68,18 @@ class _FeedScreenState extends State<FeedScreen> {
           child: PageView.builder(
             controller: _pageController,
             scrollDirection: Axis.vertical,
+            clipBehavior: Clip.hardEdge,
             itemCount: articles.length,
             onPageChanged: (index) {
               feed.setCurrentIndex(index);
               _recordVisible(feed.articles[index]);
             },
-            itemBuilder: (context, index) => ArticleContent(
-              article: articles[index],
-              paged: true,
-              onOpenDetail: () => openArticle(context, articles[index]),
+            itemBuilder: (context, index) => ClipRect(
+              child: ArticleContent(
+                article: articles[index],
+                paged: true,
+                onOpenDetail: () => openArticle(context, articles[index]),
+              ),
             ),
           ),
         ),

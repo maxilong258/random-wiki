@@ -42,48 +42,34 @@ class _PagedArticle extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: onOpenDetail,
-            child: _ArticleHeader(article: article, maxTitleLines: 3),
-          ),
+          _ArticleHeader(article: article, maxTitleLines: 3),
           const SizedBox(height: 16),
           if (article.thumbnailUrl != null) ...[
             _ArticleImage(article: article, height: 218, useHero: false),
             const SizedBox(height: 18),
           ],
           Expanded(
-            child: Stack(
-              fit: StackFit.expand,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                ShaderMask(
-                  blendMode: BlendMode.dstIn,
-                  shaderCallback: (bounds) => const LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Colors.black,
-                      Colors.black,
-                      Colors.transparent,
-                    ],
-                    stops: [0, 0.72, 1],
-                  ).createShader(bounds),
-                  child: SelectionArea(
-                    contextMenuBuilder: _regionSelectionOnlyMenu,
-                    child: Text(
-                      article.extract,
-                      overflow: TextOverflow.clip,
-                      style: theme.textTheme.bodyLarge?.copyWith(
-                        height: 1.58,
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
+                Expanded(
+                  child: _PagedExtract(
+                    text: article.extract,
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      height: 1.58,
+                      color: theme.colorScheme.onSurfaceVariant,
                     ),
                   ),
                 ),
-                Positioned(
-                  left: 0,
-                  bottom: 6,
-                  child: _WikiButton(article: article),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    if (onOpenDetail != null) ...[
+                      _MoreButton(onPressed: onOpenDetail!),
+                      const SizedBox(width: 8),
+                    ],
+                    Flexible(child: _WikiButton(article: article)),
+                  ],
                 ),
               ],
             ),
@@ -121,7 +107,6 @@ class _FullArticle extends StatelessWidget {
             ],
             SelectableText(
               article.extract,
-              contextMenuBuilder: _selectionOnlyMenu,
               style: theme.textTheme.bodyLarge?.copyWith(
                 height: 1.65,
                 color: theme.colorScheme.onSurfaceVariant,
@@ -169,11 +154,7 @@ class _ArticleHeader extends StatelessWidget {
           SizedBox(height: selectable ? 10 : 8),
         ],
         if (selectable)
-          SelectableText(
-            article.title,
-            style: titleStyle,
-            contextMenuBuilder: _selectionOnlyMenu,
-          )
+          SelectableText(article.title, style: titleStyle)
         else
           Text(
             article.title,
@@ -221,12 +202,52 @@ class _ArticleImage extends StatelessWidget {
   }
 }
 
-Widget _selectionOnlyMenu(BuildContext _, EditableTextState _) {
-  return const SizedBox.shrink();
-}
+class _PagedExtract extends StatelessWidget {
+  const _PagedExtract({required this.text, required this.style});
 
-Widget _regionSelectionOnlyMenu(BuildContext _, SelectableRegionState _) {
-  return const SizedBox.shrink();
+  final String text;
+  final TextStyle? style;
+
+  @override
+  Widget build(BuildContext context) {
+    final fadeColor = Theme.of(context).colorScheme.surface;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final lineHeight = (style?.fontSize ?? 17) * (style?.height ?? 1.58);
+        final maxLines = (constraints.maxHeight / lineHeight).floor().clamp(1, 80);
+        return ClipRect(
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              SelectableText(
+                text,
+                maxLines: maxLines,
+                scrollPhysics: const NeverScrollableScrollPhysics(),
+                style: style,
+              ),
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                height: lineHeight * 1.6,
+                child: IgnorePointer(
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [fadeColor.withValues(alpha: 0), fadeColor],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
 }
 
 void _showImagePreview(
@@ -297,6 +318,32 @@ void _showImagePreview(
   );
 }
 
+ButtonStyle _actionButtonStyle(ColorScheme colors) {
+  return OutlinedButton.styleFrom(
+    foregroundColor: colors.onSurface,
+    backgroundColor: colors.surface,
+    side: BorderSide(color: colors.outlineVariant),
+    shape: const StadiumBorder(),
+    padding: const EdgeInsets.fromLTRB(16, 10, 18, 10),
+  );
+}
+
+class _MoreButton extends StatelessWidget {
+  const _MoreButton({required this.onPressed});
+
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return OutlinedButton.icon(
+      onPressed: onPressed,
+      style: _actionButtonStyle(Theme.of(context).colorScheme),
+      icon: const Icon(Icons.article_outlined, size: 18),
+      label: Text(AppStrings.of(context).more),
+    );
+  }
+}
+
 class _WikiButton extends StatelessWidget {
   const _WikiButton({required this.article});
 
@@ -304,16 +351,9 @@ class _WikiButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
     return OutlinedButton.icon(
       onPressed: () => openWikipedia(context, article),
-      style: OutlinedButton.styleFrom(
-        foregroundColor: colors.onSurface,
-        backgroundColor: colors.surface,
-        side: BorderSide(color: colors.outlineVariant),
-        shape: const StadiumBorder(),
-        padding: const EdgeInsets.fromLTRB(16, 10, 18, 10),
-      ),
+      style: _actionButtonStyle(Theme.of(context).colorScheme),
       icon: const Icon(Icons.open_in_new, size: 18),
       label: Text(AppStrings.of(context).readOnWikipedia),
     );
