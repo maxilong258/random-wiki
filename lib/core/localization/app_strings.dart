@@ -36,8 +36,7 @@ class AppStrings {
       isChinese ? '加载失败，请检查网络后重试' : 'Could not load. Check your connection.';
   String get retry => isChinese ? '再试一次' : 'Try again';
   String get more => isChinese ? '更多' : 'More';
-  String get readOnWikipedia =>
-      isChinese ? '在维基百科中阅读全文' : 'Read the full article on Wikipedia';
+  String get readOnWikipedia => isChinese ? 'wiki页面' : 'Wiki page';
   String get closePreview => isChinese ? '关闭预览' : 'Close preview';
   String get openLinkFailed =>
       isChinese ? '打不开维基百科链接' : 'Could not open the Wikipedia link';

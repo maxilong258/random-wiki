@@ -61,16 +61,10 @@ class _PagedArticle extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(height: 10),
-                Row(
-                  children: [
-                    if (onOpenDetail != null) ...[
-                      _MoreButton(onPressed: onOpenDetail!),
-                      const SizedBox(width: 8),
-                    ],
-                    Flexible(child: _WikiButton(article: article)),
-                  ],
-                ),
+                if (onOpenDetail != null) ...[
+                  const SizedBox(height: 10),
+                  _MoreButton(onPressed: onOpenDetail!),
+                ],
               ],
             ),
           ),
@@ -89,17 +83,12 @@ class _FullArticle extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        24,
-        12,
-        24,
-        AppLayout.listBottomReserve,
-      ),
+      padding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
       child: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _ArticleHeader(article: article, selectable: true),
+            _ArticleHeader(article: article),
             const SizedBox(height: 22),
             if (article.thumbnailUrl != null) ...[
               _ArticleImage(article: article, height: 245),
@@ -122,52 +111,47 @@ class _FullArticle extends StatelessWidget {
 }
 
 class _ArticleHeader extends StatelessWidget {
-  const _ArticleHeader({
-    required this.article,
-    this.maxTitleLines,
-    this.selectable = false,
-  });
+  const _ArticleHeader({required this.article, this.maxTitleLines});
 
   final WikiArticle article;
   final int? maxTitleLines;
-  final bool selectable;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final titleStyle = theme.textTheme.displaySmall;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        if (article.description != null) ...[
-          Text(
-            article.description!.toUpperCase(),
-            maxLines: maxTitleLines == null ? null : 1,
-            overflow: maxTitleLines == null
-                ? TextOverflow.visible
-                : TextOverflow.ellipsis,
-            style: theme.textTheme.labelLarge?.copyWith(
-              letterSpacing: 0.6,
-              color: theme.colorScheme.primary,
+    return SelectionArea(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (article.description != null) ...[
+            Text(
+              article.description!.toUpperCase(),
+              maxLines: maxTitleLines == null ? null : 1,
+              overflow: maxTitleLines == null
+                  ? TextOverflow.visible
+                  : TextOverflow.ellipsis,
+              style: theme.textTheme.labelLarge?.copyWith(
+                letterSpacing: 0.6,
+                color: theme.colorScheme.primary,
+              ),
             ),
-          ),
-          SizedBox(height: selectable ? 10 : 8),
-        ],
-        if (selectable)
-          SelectableText(article.title, style: titleStyle)
-        else
+            const SizedBox(height: 10),
+          ],
           Text(
             article.title,
             maxLines: maxTitleLines,
-            overflow: TextOverflow.ellipsis,
-            style: titleStyle,
+            overflow: maxTitleLines == null
+                ? TextOverflow.visible
+                : TextOverflow.ellipsis,
+            style: theme.textTheme.displaySmall,
           ),
-        SizedBox(height: selectable ? 10 : 8),
-        Text(
-          'Wikipedia · ${article.languageCode.toUpperCase()}',
-          style: theme.textTheme.labelMedium,
-        ),
-      ],
+          const SizedBox(height: 10),
+          Text(
+            'Wikipedia · ${article.languageCode.toUpperCase()}',
+            style: theme.textTheme.labelMedium,
+          ),
+        ],
+      ),
     );
   }
 }
