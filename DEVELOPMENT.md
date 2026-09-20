@@ -39,13 +39,25 @@ git tag v1.0.4
 git push origin v1.0.4
 ```
 
-3. 打 release APK 并挂到 GitHub Release。文件名保持 `app-release.apk`，和 README 直链一致：
+3. 按架构打 APK，改成带版本号的文件名后挂到 GitHub Release。`random-wiki-arm64-v8a.apk` 不要带版本号，README 直链才不会变：
 
 ```bash
-flutter build apk --release
-gh release create v1.0.5 \
-  --title "v1.0.5" \
+flutter build apk --release --split-per-abi
+
+VERSION=1.0.5
+OUT=build/app/outputs/flutter-apk
+mkdir -p build/github-release
+cp "$OUT/app-arm64-v8a-release.apk" "build/github-release/random-wiki-$VERSION-arm64-v8a.apk"
+cp "$OUT/app-armeabi-v7a-release.apk" "build/github-release/random-wiki-$VERSION-armeabi-v7a.apk"
+cp "$OUT/app-x86_64-release.apk" "build/github-release/random-wiki-$VERSION-x86_64.apk"
+cp "$OUT/app-arm64-v8a-release.apk" "build/github-release/random-wiki-arm64-v8a.apk"
+
+gh release create "v$VERSION" \
+  --title "v$VERSION" \
   --notes "Release notes" \
   --latest \
-  build/app/outputs/flutter-apk/app-release.apk
+  build/github-release/random-wiki-$VERSION-arm64-v8a.apk \
+  build/github-release/random-wiki-$VERSION-armeabi-v7a.apk \
+  build/github-release/random-wiki-$VERSION-x86_64.apk \
+  build/github-release/random-wiki-arm64-v8a.apk
 ```

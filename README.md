@@ -6,8 +6,14 @@
 
 ## 下载
 
-- [直接下载 APK](https://github.com/maxilong258/random-wiki/releases/latest/download/app-release.apk)
-- [所有版本](https://github.com/maxilong258/random-wiki/releases)
+- [直接下载（推荐，64 位手机）](https://github.com/maxilong258/random-wiki/releases/latest/download/random-wiki-arm64-v8a.apk)
+- [所有版本与架构](https://github.com/maxilong258/random-wiki/releases)
+
+Release 里的安装包带版本号，例如 `random-wiki-1.0.4-arm64-v8a.apk`：
+
+- **arm64-v8a**：现在的手机几乎都用这个
+- **armeabi-v7a**：较老的 32 位手机
+- **x86_64**：电脑模拟器
 
 安装未知来源 APK 时，按系统提示允许即可。Google Play 如已上架，也可以在商店搜索 **Random Wiki**。
 

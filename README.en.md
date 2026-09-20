@@ -6,8 +6,14 @@ A swipeable random Wikipedia reader for Android. Not affiliated with the Wikimed
 
 ## Download
 
-- [Download APK](https://github.com/maxilong258/random-wiki/releases/latest/download/app-release.apk)
-- [All releases](https://github.com/maxilong258/random-wiki/releases)
+- [Download APK (recommended, 64-bit phones)](https://github.com/maxilong258/random-wiki/releases/latest/download/random-wiki-arm64-v8a.apk)
+- [All versions and ABIs](https://github.com/maxilong258/random-wiki/releases)
+
+Release assets include the version in the filename, for example `random-wiki-1.0.4-arm64-v8a.apk`:
+
+- **arm64-v8a**: almost all current phones
+- **armeabi-v7a**: older 32-bit phones
+- **x86_64**: desktop emulators
 
 Allow installation from unknown sources if Android asks. If the app is on Google Play, you can also search for **Random Wiki**.
 
