@@ -66,9 +66,9 @@ class WikiRepository {
             }),
             headers: const {
               'User-Agent':
-                  'RandomWiki/1.0 (Flutter educational app; +https://wikipedia.org)',
+                  'RandomWiki/1.0.4 (https://github.com/maxilong258/random-wiki)',
               'Api-User-Agent':
-                  'RandomWiki/1.0 (Flutter educational app; +https://wikipedia.org)',
+                  'RandomWiki/1.0.4 (https://github.com/maxilong258/random-wiki)',
             },
           )
           .timeout(const Duration(seconds: 15));
