@@ -43,8 +43,6 @@ flutter pub get
 flutter run
 ```
 
-本地调试、签名和打 tag 发版见 [DEVELOPMENT.md](DEVELOPMENT.md)。
-
 ## 开源协议
 
 [MIT](LICENSE)

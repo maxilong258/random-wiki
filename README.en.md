@@ -43,8 +43,6 @@ flutter pub get
 flutter run
 ```
 
-Local debugging, signing, and tagged releases are in [DEVELOPMENT.md](DEVELOPMENT.md) (Chinese).
-
 ## License
 
 [MIT](LICENSE)
