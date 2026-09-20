@@ -1,6 +1,6 @@
 # Random Wiki
 
-A swipeable random Wikipedia reader for Android. Not affiliated with the Wikimedia Foundation.
+**简体中文** | [English](README.en.md)
 
 上下滑刷随机维基百科词条。这不是维基媒体基金会的官方应用。
 
