@@ -39,13 +39,13 @@ git tag v1.0.4
 git push origin v1.0.4
 ```
 
-3. 打 release APK 并挂到 GitHub Release（资源名保持 `random-wiki.apk`，README 的下载链接才不会变）：
+3. 打 release APK 并挂到 GitHub Release。文件名保持 `app-release.apk`，和 README 直链一致：
 
 ```bash
 flutter build apk --release
-gh release create v1.0.4 \
-  --title "v1.0.4" \
+gh release create v1.0.5 \
+  --title "v1.0.5" \
   --notes "Release notes" \
   --latest \
-  build/app/outputs/flutter-apk/app-release.apk#random-wiki.apk
+  build/app/outputs/flutter-apk/app-release.apk
 ```

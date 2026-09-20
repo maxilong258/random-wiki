@@ -6,7 +6,7 @@ A swipeable random Wikipedia reader for Android. Not affiliated with the Wikimed
 
 ## 下载
 
-- [直接下载 APK](https://github.com/maxilong258/random-wiki/releases/latest/download/random-wiki.apk)
+- [直接下载 APK](https://github.com/maxilong258/random-wiki/releases/latest/download/app-release.apk)
 - [所有版本](https://github.com/maxilong258/random-wiki/releases)
 
 安装未知来源 APK 时，按系统提示允许即可。Google Play 如已上架，也可以在商店搜索 **Random Wiki**。
