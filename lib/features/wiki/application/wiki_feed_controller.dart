@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import '../data/wiki_repository.dart';
 import '../domain/wiki_article.dart';
+import '../domain/wiki_feed_mode.dart';
 
 class WikiFeedController extends ChangeNotifier {
   WikiFeedController(this._repository, this._languageCode);
@@ -11,7 +12,9 @@ class WikiFeedController extends ChangeNotifier {
   final List<WikiArticle> _articles = [];
   final Set<String> _seenTitles = {};
   String _languageCode;
+  WikiFeedMode _mode = WikiFeedMode.random;
   int _currentIndex = 0;
+  int _epoch = 0;
   bool _isLoading = true;
   bool _inFlight = false;
   Object? _error;
@@ -19,6 +22,8 @@ class WikiFeedController extends ChangeNotifier {
   int _generation = 0;
 
   List<WikiArticle> get articles => List.unmodifiable(_articles);
+  WikiFeedMode get mode => _mode;
+  int get epoch => _epoch;
   int get currentIndex => _currentIndex;
   WikiArticle? get currentArticle {
     if (_articles.isEmpty) return null;
@@ -37,7 +42,18 @@ class WikiFeedController extends ChangeNotifier {
   Future<void> changeLanguage(String code) async {
     if (code == _languageCode) return;
     _languageCode = code;
+    await _reload();
+  }
+
+  Future<void> setMode(WikiFeedMode mode) async {
+    if (mode == _mode) return;
+    _mode = mode;
+    await _reload();
+  }
+
+  Future<void> _reload() async {
     _generation++;
+    _epoch++;
     _currentIndex = 0;
     _isLoading = true;
     _inFlight = false;
@@ -59,6 +75,7 @@ class WikiFeedController extends ChangeNotifier {
   }
 
   Future<void> loadMoreIfNeeded(int index) async {
+    if (_mode == WikiFeedMode.onThisDay) return;
     if (index >= _articles.length - 3) {
       await _loadNext(count: 4);
     }
@@ -68,24 +85,34 @@ class WikiFeedController extends ChangeNotifier {
 
   Future<void> _loadNext({int count = 4}) async {
     if (_inFlight) return;
+    if (_mode == WikiFeedMode.onThisDay && _articles.isNotEmpty) return;
     final generation = _generation;
     _inFlight = true;
     _isLoading = true;
     _error = null;
     _loadMoreError = null;
     try {
-      var added = await _appendUnique(count, generation);
-      if (generation != _generation) return;
-      if (added < count) {
-        added += await _appendUnique(count - added, generation);
-      }
-      if (generation != _generation) return;
-      if (added == 0) {
-        final failure = Exception('Unable to load Wikipedia articles.');
+      if (_mode == WikiFeedMode.onThisDay) {
+        final batch = await _repository.onThisDay(_languageCode);
+        if (generation != _generation) return;
+        _articles.addAll(batch);
         if (_articles.isEmpty) {
-          _error = failure;
-        } else {
-          _loadMoreError = failure;
+          _error = Exception('Unable to load on this day.');
+        }
+      } else {
+        var added = await _appendUnique(count, generation);
+        if (generation != _generation) return;
+        if (added < count) {
+          added += await _appendUnique(count - added, generation);
+        }
+        if (generation != _generation) return;
+        if (added == 0) {
+          final failure = Exception('Unable to load Wikipedia articles.');
+          if (_articles.isEmpty) {
+            _error = failure;
+          } else {
+            _loadMoreError = failure;
+          }
         }
       }
     } catch (error) {

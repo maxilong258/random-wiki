@@ -13,6 +13,7 @@ import '../../settings/application/app_settings_controller.dart';
 import '../../wiki/application/wiki_feed_controller.dart';
 import '../../wiki/data/wiki_repository.dart';
 import '../../wiki/presentation/feed_screen.dart';
+import 'feed_mode_button.dart';
 
 class HomeShell extends StatefulWidget {
   const HomeShell({super.key});
@@ -65,7 +66,7 @@ class _HomeShellState extends State<HomeShell> {
       child: Scaffold(
         extendBody: true,
         appBar: AppBar(
-          title: Text(titles[_index]),
+          title: _index == 0 ? const _FeedModeTitle() : Text(titles[_index]),
           actions: [
             if (_index == 0) const _CurrentArticleBookmark(),
             if (_index == 0) const SizedBox(width: 8),
@@ -90,6 +91,19 @@ class _HomeShellState extends State<HomeShell> {
           onSelected: (index) => setState(() => _index = index),
         ),
       ),
+    );
+  }
+}
+
+class _FeedModeTitle extends StatelessWidget {
+  const _FeedModeTitle();
+
+  @override
+  Widget build(BuildContext context) {
+    final feed = context.watch<WikiFeedController>();
+    return FeedModeButton(
+      mode: feed.mode,
+      onSelected: (mode) => unawaited(feed.setMode(mode)),
     );
   }
 }

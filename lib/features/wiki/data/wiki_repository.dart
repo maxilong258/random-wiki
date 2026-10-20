@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:http/http.dart' as http;
 import '../domain/wiki_article.dart';
+import 'on_this_day.dart';
+import 'related_articles.dart';
 
 class WikiRepository {
   WikiRepository(this._cache);
@@ -107,6 +109,85 @@ class WikiRepository {
       pageUrl: page['fullurl'] as String? ??
           'https://$languageCode.wikipedia.org/wiki/${Uri.encodeComponent(title)}',
     );
+  }
+
+  Future<List<WikiArticle>> relatedArticles(
+    String languageCode,
+    String title, {
+    int limit = 6,
+  }) async {
+    final fetchCount = (limit + 2).clamp(1, 20);
+    final response = await _client
+        .get(
+          Uri.https('$languageCode.wikipedia.org', '/w/api.php', {
+            'action': 'query',
+            'generator': 'search',
+            'gsrsearch': 'morelike:$title',
+            'gsrlimit': fetchCount.toString(),
+            'gsrnamespace': '0',
+            'prop': 'extracts|pageimages|description|info|pageprops',
+            'exintro': '1',
+            'explaintext': '1',
+            'exlimit': fetchCount.toString(),
+            'inprop': 'url',
+            'piprop': 'thumbnail',
+            'pithumbsize': '400',
+            'pilimit': fetchCount.toString(),
+            'ppprop': 'disambiguation',
+            'format': 'json',
+            'formatversion': '2',
+          }),
+          headers: const {
+            'User-Agent':
+                'RandomWiki/1.0.4 (https://github.com/maxilong258/random-wiki)',
+            'Api-User-Agent':
+                'RandomWiki/1.0.4 (https://github.com/maxilong258/random-wiki)',
+          },
+        )
+        .timeout(const Duration(seconds: 15));
+    if (response.statusCode != 200) {
+      throw Exception('Unable to load related articles.');
+    }
+    final payload = jsonDecode(response.body);
+    if (payload is! Map<String, dynamic>) {
+      throw Exception('Unable to load related articles.');
+    }
+    final query = payload['query'];
+    final pages = query is Map ? query['pages'] : null;
+    return articlesFromRelatedPages(
+      pages is List ? pages : const [],
+      languageCode,
+      excludeTitle: title.trim(),
+      limit: limit,
+    );
+  }
+
+  Future<List<WikiArticle>> onThisDay(String languageCode) async {
+    final today = DateTime.now();
+    final month = today.month.toString().padLeft(2, '0');
+    final day = today.day.toString().padLeft(2, '0');
+    final response = await _client
+        .get(
+          Uri.https(
+            '$languageCode.wikipedia.org',
+            '/api/rest_v1/feed/onthisday/events/$month/$day',
+          ),
+          headers: const {
+            'User-Agent':
+                'RandomWiki/1.0.4 (https://github.com/maxilong258/random-wiki)',
+            'Api-User-Agent':
+                'RandomWiki/1.0.4 (https://github.com/maxilong258/random-wiki)',
+          },
+        )
+        .timeout(const Duration(seconds: 15));
+    if (response.statusCode != 200) {
+      throw Exception('Unable to load on this day.');
+    }
+    final payload = jsonDecode(response.body);
+    if (payload is! Map<String, dynamic>) {
+      throw Exception('Unable to load on this day.');
+    }
+    return articlesFromOnThisDay(payload, languageCode, today);
   }
 
   void dispose() => _client.close();

@@ -19,14 +19,7 @@ class FeedScreen extends StatefulWidget {
 }
 
 class _FeedScreenState extends State<FeedScreen> {
-  final PageController _pageController = PageController(keepPage: false);
   String? _recordedKey;
-
-  @override
-  void dispose() {
-    _pageController.dispose();
-    super.dispose();
-  }
 
   void _recordVisible(WikiArticle? article) {
     if (article == null || article.storageKey == _recordedKey) return;
@@ -56,36 +49,72 @@ class _FeedScreenState extends State<FeedScreen> {
 
     return Stack(
       children: [
-        ScrollConfiguration(
-          behavior: ScrollConfiguration.of(context).copyWith(
-            dragDevices: {
-              PointerDeviceKind.touch,
-              PointerDeviceKind.mouse,
-              PointerDeviceKind.trackpad,
-              PointerDeviceKind.stylus,
-            },
-          ),
-          child: PageView.builder(
-            controller: _pageController,
-            scrollDirection: Axis.vertical,
-            clipBehavior: Clip.hardEdge,
-            itemCount: articles.length,
-            onPageChanged: (index) {
-              feed.setCurrentIndex(index);
-              _recordVisible(feed.articles[index]);
-            },
-            itemBuilder: (context, index) => ClipRect(
-              child: ArticleContent(
-                article: articles[index],
-                paged: true,
-                onOpenDetail: () => openArticle(context, articles[index]),
-              ),
-            ),
-          ),
+        _FeedPages(
+          key: ValueKey(feed.epoch),
+          articles: articles,
+          onPageChanged: (index) {
+            feed.setCurrentIndex(index);
+            _recordVisible(feed.articles[index]);
+          },
         ),
         if (feed.loadMoreError != null)
           _LoadMoreBanner(onRetry: () => unawaited(feed.retry())),
       ],
+    );
+  }
+}
+
+class _FeedPages extends StatefulWidget {
+  const _FeedPages({
+    super.key,
+    required this.articles,
+    required this.onPageChanged,
+  });
+
+  final List<WikiArticle> articles;
+  final ValueChanged<int> onPageChanged;
+
+  @override
+  State<_FeedPages> createState() => _FeedPagesState();
+}
+
+class _FeedPagesState extends State<_FeedPages> {
+  final PageController _pageController = PageController(keepPage: false);
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ScrollConfiguration(
+      behavior: ScrollConfiguration.of(context).copyWith(
+        dragDevices: {
+          PointerDeviceKind.touch,
+          PointerDeviceKind.mouse,
+          PointerDeviceKind.trackpad,
+          PointerDeviceKind.stylus,
+        },
+      ),
+      child: PageView.builder(
+        controller: _pageController,
+        scrollDirection: Axis.vertical,
+        clipBehavior: Clip.hardEdge,
+        itemCount: widget.articles.length,
+        onPageChanged: widget.onPageChanged,
+        itemBuilder: (context, index) {
+          final article = widget.articles[index];
+          return ClipRect(
+            child: ArticleContent(
+              article: article,
+              paged: true,
+              onOpenDetail: () => openArticle(context, article),
+            ),
+          );
+        },
+      ),
     );
   }
 }

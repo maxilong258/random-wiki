@@ -9,6 +9,8 @@ class AppStrings {
       AppStrings._(Localizations.localeOf(context).languageCode == 'zh');
 
   String get appName => isChinese ? '随机 Wiki' : 'Random Wiki';
+  String get onThisDay => isChinese ? '历史上的今天' : 'On this day';
+  String get switchFeed => isChinese ? '切换内容' : 'Switch feed';
   String get favorites => isChinese ? '收藏列表' : 'Favorites';
   String get favoriteTab => isChinese ? '收藏' : 'Saved';
   String get history => isChinese ? '阅读历史' : 'History';
@@ -31,11 +33,16 @@ class AppStrings {
   String get noHistory =>
       isChinese ? '阅读过的词条会出现在这里' : 'Articles you read will appear here';
   String get articleDetails => isChinese ? '词条详情' : 'Article';
+  String get relatedArticles => isChinese ? '相关词条' : 'Related articles';
+  String get relatedFailed =>
+      isChinese ? '相关词条加载失败' : 'Could not load related articles';
   String get loading => isChinese ? '正在加载随机内容' : 'Loading a random article';
   String get loadFailed =>
       isChinese ? '加载失败，请检查网络后重试' : 'Could not load. Check your connection.';
   String get retry => isChinese ? '再试一次' : 'Try again';
   String get more => isChinese ? '更多' : 'More';
+  String get share => isChinese ? '分享' : 'Share';
+  String get shareFailed => isChinese ? '分享没有打开' : 'Could not open share';
   String get readOnWikipedia => isChinese ? 'wiki页面' : 'Wiki page';
   String get closePreview => isChinese ? '关闭预览' : 'Close preview';
   String get openLinkFailed =>

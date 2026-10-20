@@ -5,6 +5,7 @@ import '../../../core/widgets/app_circle_icon_button.dart';
 import '../../favorites/data/saved_articles_repository.dart';
 import '../domain/wiki_article.dart';
 import 'widgets/article_content.dart';
+import 'widgets/related_articles_section.dart';
 
 class ArticleDetailScreen extends StatelessWidget {
   const ArticleDetailScreen({super.key, required this.article});
@@ -39,7 +40,10 @@ class ArticleDetailScreen extends StatelessWidget {
           const SizedBox(width: 16),
         ],
       ),
-      body: ArticleContent(article: article),
+      body: ArticleContent(
+        article: article,
+        footer: RelatedArticlesSection(article: article),
+      ),
     );
   }
 }

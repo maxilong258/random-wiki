@@ -4,6 +4,7 @@ import '../../../../core/layout/app_layout.dart';
 import '../../../../core/localization/app_strings.dart';
 import '../../domain/wiki_article.dart';
 import '../open_wikipedia.dart';
+import '../share_article.dart';
 
 class ArticleContent extends StatelessWidget {
   const ArticleContent({
@@ -11,16 +12,18 @@ class ArticleContent extends StatelessWidget {
     required this.article,
     this.paged = false,
     this.onOpenDetail,
+    this.footer,
   });
 
   final WikiArticle article;
   final bool paged;
   final VoidCallback? onOpenDetail;
+  final Widget? footer;
 
   @override
   Widget build(BuildContext context) => paged
       ? _PagedArticle(article: article, onOpenDetail: onOpenDetail)
-      : _FullArticle(article: article);
+      : _FullArticle(article: article, footer: footer);
 }
 
 class _PagedArticle extends StatelessWidget {
@@ -63,7 +66,12 @@ class _PagedArticle extends StatelessWidget {
                 ),
                 if (onOpenDetail != null) ...[
                   const SizedBox(height: 10),
-                  _MoreButton(onPressed: onOpenDetail!),
+                  _ArticleActions(
+                    children: [
+                      _MoreButton(onPressed: onOpenDetail!),
+                      _ShareButton(article: article),
+                    ],
+                  ),
                 ],
               ],
             ),
@@ -75,9 +83,10 @@ class _PagedArticle extends StatelessWidget {
 }
 
 class _FullArticle extends StatelessWidget {
-  const _FullArticle({required this.article});
+  const _FullArticle({required this.article, this.footer});
 
   final WikiArticle article;
+  final Widget? footer;
 
   @override
   Widget build(BuildContext context) {
@@ -102,7 +111,13 @@ class _FullArticle extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 28),
-            _WikiButton(article: article),
+            _ArticleActions(
+              children: [
+                _WikiButton(article: article),
+                _ShareButton(article: article),
+              ],
+            ),
+            ?footer,
           ],
         ),
       ),
@@ -310,6 +325,33 @@ ButtonStyle _actionButtonStyle(ColorScheme colors) {
     shape: const StadiumBorder(),
     padding: const EdgeInsets.fromLTRB(16, 10, 18, 10),
   );
+}
+
+class _ArticleActions extends StatelessWidget {
+  const _ArticleActions({required this.children});
+
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    return Wrap(spacing: 8, runSpacing: 8, children: children);
+  }
+}
+
+class _ShareButton extends StatelessWidget {
+  const _ShareButton({required this.article});
+
+  final WikiArticle article;
+
+  @override
+  Widget build(BuildContext context) {
+    return OutlinedButton.icon(
+      onPressed: () => shareArticle(context, article),
+      style: _actionButtonStyle(Theme.of(context).colorScheme),
+      icon: const Icon(Icons.share, size: 18),
+      label: Text(AppStrings.of(context).share),
+    );
+  }
 }
 
 class _MoreButton extends StatelessWidget {
