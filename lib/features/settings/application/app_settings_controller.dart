@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/localization/app_language.dart';
 import '../../../core/storage/app_preferences.dart';
 import '../../wiki/domain/article_depth.dart';
 
@@ -21,9 +22,11 @@ class AppSettingsController extends ChangeNotifier {
   }
 
   Future<void> setLanguageCode(String value) async {
-    _languageCode = value;
+    final code = supportedLanguageCode(value);
+    if (code == _languageCode) return;
+    _languageCode = code;
     notifyListeners();
-    await _preferences.saveLanguageCode(value);
+    await _preferences.saveLanguageCode(code);
   }
 
   Future<void> setArticleDepth(ArticleDepth value) async {

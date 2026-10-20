@@ -1,63 +1,61 @@
 import 'package:flutter/widgets.dart';
 import '../../features/wiki/domain/article_depth.dart';
+import 'app_language.dart';
+import 'app_text.dart';
 
 class AppStrings {
-  const AppStrings._(this.isChinese);
+  const AppStrings.forLanguage(this.languageCode);
 
-  final bool isChinese;
+  final String languageCode;
 
-  static AppStrings of(BuildContext context) =>
-      AppStrings._(Localizations.localeOf(context).languageCode == 'zh');
+  static AppStrings of(BuildContext context) => AppStrings.forLanguage(
+    supportedLanguageCode(Localizations.localeOf(context).languageCode),
+  );
 
-  String get appName => isChinese ? '随机 Wiki' : 'Random Wiki';
-  String get onThisDay => isChinese ? '历史上的今天' : 'On this day';
-  String get switchFeed => isChinese ? '切换内容' : 'Switch feed';
-  String get favorites => isChinese ? '收藏列表' : 'Favorites';
-  String get favoriteTab => isChinese ? '收藏' : 'Saved';
-  String get history => isChinese ? '阅读历史' : 'History';
-  String get settings => isChinese ? '设置' : 'Settings';
-  String get explore => isChinese ? '探索' : 'Explore';
-  String get articleDepth => isChinese ? '文章深度' : 'Article depth';
-  String get articleDepthHint => isChinese
-      ? '热门和熟知来自维基基础词条，其余按每天阅读量。'
-      : 'Popular and familiar topics come from vital articles. The rest follow daily readership.';
-  String get settingsTooltip => isChinese ? '设置' : 'Settings';
-  String get saveCurrent => isChinese ? '收藏当前词条' : 'Save this article';
-  String get removeCurrent => isChinese ? '取消收藏' : 'Remove from favorites';
-  String get removeFavoriteTitle =>
-      isChinese ? '确认取消收藏？' : 'Remove from favorites?';
-  String get cancel => isChinese ? '取消' : 'Cancel';
-  String get confirm => isChinese ? '确认' : 'Confirm';
-  String get backToTop => isChinese ? '返回顶部' : 'Back to top';
-  String get contentLanguage =>
-      isChinese ? '内容与界面语言' : 'Content & app language';
-  String get appearance => isChinese ? '外观' : 'Appearance';
-  String get followSystem => isChinese ? '跟随系统' : 'System';
-  String get light => isChinese ? '浅色' : 'Light';
-  String get dark => isChinese ? '深色' : 'Dark';
+  AppText get _copy => appTextFor(languageCode);
+
+  String get appName => _copy.appName;
+  String get onThisDay => _copy.onThisDay;
+  String get wikiGuide => _copy.wikiGuide;
+  String get switchFeed => _copy.switchFeed;
+  String get favorites => _copy.favorites;
+  String get favoriteTab => _copy.favoriteTab;
+  String get history => _copy.history;
+  String get settings => _copy.settings;
+  String get explore => _copy.explore;
+  String get articleDepth => _copy.articleDepth;
+  String get articleDepthHint => _copy.articleDepthHint;
+  String get settingsTooltip => _copy.settings;
+  String get saveCurrent => _copy.saveCurrent;
+  String get removeCurrent => _copy.removeCurrent;
+  String get removeFavoriteTitle => _copy.removeFavoriteTitle;
+  String get cancel => _copy.cancel;
+  String get confirm => _copy.confirm;
+  String get backToTop => _copy.backToTop;
+  String get contentLanguage => _copy.contentLanguage;
+  String get appearance => _copy.appearance;
+  String get followSystem => _copy.followSystem;
+  String get light => _copy.light;
+  String get dark => _copy.dark;
   String depthLabel(ArticleDepth depth) => switch (depth) {
-    ArticleDepth.popular => isChinese ? '热门' : 'Popular',
-    ArticleDepth.familiar => isChinese ? '熟知' : 'Familiar',
-    ArticleDepth.balanced => isChinese ? '均衡' : 'Balanced',
-    ArticleDepth.niche => isChinese ? '小众' : 'Niche',
-    ArticleDepth.obscure => isChinese ? '冷门' : 'Obscure',
+    ArticleDepth.popular => _copy.popular,
+    ArticleDepth.familiar => _copy.familiar,
+    ArticleDepth.balanced => _copy.balanced,
+    ArticleDepth.niche => _copy.niche,
+    ArticleDepth.obscure => _copy.obscure,
   };
-  String get noFavorites => isChinese ? '还没有收藏词条' : 'No saved articles yet';
-  String get noHistory =>
-      isChinese ? '阅读过的词条会出现在这里' : 'Articles you read will appear here';
-  String get articleDetails => isChinese ? '词条详情' : 'Article';
-  String get relatedArticles => isChinese ? '相关词条' : 'Related articles';
-  String get relatedFailed =>
-      isChinese ? '相关词条加载失败' : 'Could not load related articles';
-  String get loading => isChinese ? '正在加载随机内容' : 'Loading a random article';
-  String get loadFailed =>
-      isChinese ? '加载失败，请检查网络后重试' : 'Could not load. Check your connection.';
-  String get retry => isChinese ? '再试一次' : 'Try again';
-  String get more => isChinese ? '更多' : 'More';
-  String get share => isChinese ? '分享' : 'Share';
-  String get shareFailed => isChinese ? '分享没有打开' : 'Could not open share';
-  String get readOnWikipedia => isChinese ? 'wiki页面' : 'Wiki page';
-  String get closePreview => isChinese ? '关闭预览' : 'Close preview';
-  String get openLinkFailed =>
-      isChinese ? '打不开维基百科链接' : 'Could not open the Wikipedia link';
+  String get noFavorites => _copy.noFavorites;
+  String get noHistory => _copy.noHistory;
+  String get articleDetails => _copy.articleDetails;
+  String get relatedArticles => _copy.relatedArticles;
+  String get relatedFailed => _copy.relatedFailed;
+  String get loading => _copy.loading;
+  String get loadFailed => _copy.loadFailed;
+  String get retry => _copy.retry;
+  String get more => _copy.more;
+  String get share => _copy.share;
+  String get shareFailed => _copy.shareFailed;
+  String get readOnWikipedia => _copy.readOnWikipedia;
+  String get closePreview => _copy.closePreview;
+  String get openLinkFailed => _copy.openLinkFailed;
 }

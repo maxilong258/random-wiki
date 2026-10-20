@@ -10,9 +10,11 @@ import '../domain/wiki_article.dart';
 Future<void> openWikipedia(BuildContext context, WikiArticle article) async {
   unawaited(context.read<HistoryRepository>().record(article));
   final webUri = Uri.parse(article.pageUrl);
-  final appUri = webUri.replace(scheme: 'wikipedia');
-
-  if (await _tryLaunch(appUri, LaunchMode.externalApplication)) return;
+  final isVoyage = webUri.host.contains('wikivoyage.org');
+  if (!isVoyage) {
+    final appUri = webUri.replace(scheme: 'wikipedia');
+    if (await _tryLaunch(appUri, LaunchMode.externalApplication)) return;
+  }
   if (await _tryLaunch(webUri, LaunchMode.externalApplication)) return;
   if (await _tryLaunch(webUri, LaunchMode.inAppBrowserView)) return;
   if (await _tryLaunch(webUri, LaunchMode.platformDefault)) return;

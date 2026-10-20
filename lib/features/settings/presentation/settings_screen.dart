@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../../core/localization/app_language.dart';
 import '../../../core/localization/app_strings.dart';
 import '../../../core/widgets/app_circle_icon_button.dart';
 import '../application/app_settings_controller.dart';
@@ -11,7 +12,6 @@ class SettingsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final settings = context.watch<AppSettingsController>();
     final strings = AppStrings.of(context);
-    final colors = Theme.of(context).colorScheme;
     return Scaffold(
       appBar: AppBar(
         leadingWidth: 68,
@@ -35,30 +35,19 @@ class SettingsScreen extends StatelessWidget {
             style: Theme.of(context).textTheme.titleMedium,
           ),
           const SizedBox(height: 8),
-          SegmentedButton<String>(
-            segments: const [
-              ButtonSegment(value: 'zh', label: Text('中文')),
-              ButtonSegment(value: 'en', label: Text('English')),
+          _SettingsDropdown<String>(
+            value: settings.languageCode,
+            items: [
+              for (final language in appLanguages)
+                DropdownMenuItem(
+                  value: language.code,
+                  child: Text(
+                    language.nativeName,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
             ],
-            selected: {settings.languageCode},
-            showSelectedIcon: false,
-            style: ButtonStyle(
-              foregroundColor: WidgetStateProperty.resolveWith(
-                (states) => states.contains(WidgetState.selected)
-                    ? colors.onPrimary
-                    : colors.onSurface,
-              ),
-              backgroundColor: WidgetStateProperty.resolveWith(
-                (states) => states.contains(WidgetState.selected)
-                    ? colors.primary
-                    : colors.surface,
-              ),
-              side: WidgetStatePropertyAll(
-                BorderSide(color: colors.outlineVariant),
-              ),
-            ),
-            onSelectionChanged: (value) =>
-                settings.setLanguageCode(value.first),
+            onChanged: settings.setLanguageCode,
           ),
           const SizedBox(height: 28),
           ArticleDepthControl(
@@ -70,26 +59,64 @@ class SettingsScreen extends StatelessWidget {
             strings.appearance,
             style: Theme.of(context).textTheme.titleMedium,
           ),
-          RadioGroup<ThemeMode>(
-            groupValue: settings.themeMode,
-            onChanged: (value) {
-              if (value != null) settings.setThemeMode(value);
-            },
-            child: Column(
-              children: [
-                RadioListTile(
-                  value: ThemeMode.system,
-                  title: Text(strings.followSystem),
-                ),
-                RadioListTile(
-                  value: ThemeMode.light,
-                  title: Text(strings.light),
-                ),
-                RadioListTile(value: ThemeMode.dark, title: Text(strings.dark)),
-              ],
-            ),
+          const SizedBox(height: 8),
+          _SettingsDropdown<ThemeMode>(
+            value: settings.themeMode,
+            items: [
+              DropdownMenuItem(
+                value: ThemeMode.system,
+                child: Text(strings.followSystem),
+              ),
+              DropdownMenuItem(
+                value: ThemeMode.light,
+                child: Text(strings.light),
+              ),
+              DropdownMenuItem(
+                value: ThemeMode.dark,
+                child: Text(strings.dark),
+              ),
+            ],
+            onChanged: settings.setThemeMode,
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _SettingsDropdown<T> extends StatelessWidget {
+  const _SettingsDropdown({
+    required this.value,
+    required this.items,
+    required this.onChanged,
+  });
+
+  final T value;
+  final List<DropdownMenuItem<T>> items;
+  final ValueChanged<T> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        border: Border.all(color: colors.outlineVariant),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        child: DropdownButtonHideUnderline(
+          child: DropdownButton<T>(
+            value: value,
+            isExpanded: true,
+            borderRadius: BorderRadius.circular(12),
+            dropdownColor: colors.surface,
+            items: items,
+            onChanged: (next) {
+              if (next != null) onChanged(next);
+            },
+          ),
+        ),
       ),
     );
   }

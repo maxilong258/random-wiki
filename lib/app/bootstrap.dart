@@ -6,6 +6,7 @@ import '../core/storage/app_preferences.dart';
 import '../features/favorites/data/saved_articles_repository.dart';
 import '../features/history/data/history_repository.dart';
 import '../features/settings/application/app_settings_controller.dart';
+import '../features/wiki/data/wiki_cache.dart';
 import '../features/wiki/data/wiki_repository.dart';
 
 Future<void> bootstrap(Widget app) async {
@@ -14,6 +15,8 @@ Future<void> bootstrap(Widget app) async {
   await Hive.initFlutter();
   final savedArticles = await Hive.openBox<dynamic>('saved_articles');
   final readingHistory = await Hive.openBox<dynamic>('reading_history');
+  final articleCache = WikiCache(await Hive.openBox<dynamic>('article_cache'));
+  await articleCache.prune();
 
   runApp(
     MultiProvider(
@@ -22,7 +25,7 @@ Future<void> bootstrap(Widget app) async {
           create: (_) => AppSettingsController(preferences),
         ),
         Provider(
-          create: (_) => WikiRepository(),
+          create: (_) => WikiRepository(articleCache),
           dispose: (_, repository) => repository.dispose(),
         ),
         ChangeNotifierProvider(

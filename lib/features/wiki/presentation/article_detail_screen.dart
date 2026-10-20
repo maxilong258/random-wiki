@@ -42,7 +42,9 @@ class ArticleDetailScreen extends StatelessWidget {
       ),
       body: ArticleContent(
         article: article,
-        footer: RelatedArticlesSection(article: article),
+        footer: article.source == ArticleSource.wikivoyage
+            ? null
+            : RelatedArticlesSection(article: article),
       ),
     );
   }

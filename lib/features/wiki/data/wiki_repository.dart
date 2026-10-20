@@ -2,13 +2,18 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:http/http.dart' as http;
+import '../../../core/localization/app_language.dart';
 import '../domain/article_depth.dart';
 import '../domain/wiki_article.dart';
 import 'on_this_day.dart';
 import 'related_articles.dart';
+import 'voyage_guides.dart';
+import 'wiki_cache.dart';
 
 class WikiRepository {
-  WikiRepository();
+  WikiRepository(this._cache);
+
+  final WikiCache _cache;
 
   final _client = http.Client();
   final _random = Random();
@@ -16,7 +21,8 @@ class WikiRepository {
   final Map<ArticleDepth, List<String>> _vitalPools = {};
 
   static const _headers = {
-    'User-Agent': 'RandomWiki/1.0.4 (https://github.com/maxilong258/random-wiki)',
+    'User-Agent':
+        'RandomWiki/1.0.4 (https://github.com/maxilong258/random-wiki)',
     'Api-User-Agent':
         'RandomWiki/1.0.4 (https://github.com/maxilong258/random-wiki)',
   };
@@ -39,11 +45,19 @@ class WikiRepository {
       );
       if (vital != null) return vital;
     }
-    final fetchCount = articleDepthUsesVitalList(depth) ? depthFetchCount(count) : 20;
+    final fetchCount = articleDepthUsesVitalList(depth)
+        ? depthFetchCount(count)
+        : 20;
     final articles =
         await _fetchRandomArticles(languageCode, fetchCount, depth: depth) ??
         await _fetchRandomArticles(languageCode, fetchCount, depth: depth);
-    if (articles != null && articles.isNotEmpty) return articles;
+    if (articles != null && articles.isNotEmpty) {
+      await _cache.saveArticles(articles);
+      await _cache.saveBatch(languageCode, depth.name, articles);
+      return articles;
+    }
+    final cached = await _cache.readBatch(languageCode, depth.name);
+    if (cached.isNotEmpty) return cached;
     throw Exception('Unable to load Wikipedia articles.');
   }
 
@@ -80,24 +94,32 @@ class WikiRepository {
   }
 
   Future<List<String>> _englishVital(int level) {
-    return _vitalLoads[level] ??= _loadEnglishVital(level).then((titles) {
-      if (titles.length < vitalMinimumCounts[level]!) {
+    return _vitalLoads[level] ??= _loadEnglishVital(level).then(
+      (titles) {
+        if (titles.length < vitalMinimumCounts[level]!) {
+          _vitalLoads.remove(level);
+        }
+        return titles;
+      },
+      onError: (Object error, StackTrace stack) {
         _vitalLoads.remove(level);
-      }
-      return titles;
-    }, onError: (Object error, StackTrace stack) {
-      _vitalLoads.remove(level);
-      Error.throwWithStackTrace(error, stack);
-    });
+        Error.throwWithStackTrace(error, stack);
+      },
+    );
   }
 
   Future<List<String>> _loadEnglishVital(int level) async {
+    final cached = await _cache.readVitalTitles(level);
+    final minimum = vitalMinimumCounts[level]!;
+    if (cached != null && cached.length >= minimum) return cached;
     final pages = level == 3 ? const [vitalLevel3Page] : vitalLevel4Pages;
     final titles = <String>{};
     for (final page in pages) {
       titles.addAll(await _articleLinks(page));
     }
-    return titles.toList();
+    final stored = titles.toList();
+    await _cache.saveVitalTitles(level, stored);
+    return stored;
   }
 
   Future<List<String>> _articleLinks(String title) async {
@@ -122,7 +144,9 @@ class WikiRepository {
           for (final link in links) {
             if (link is! Map) continue;
             final linked = link['title'];
-            if (linked is String && linked.isNotEmpty && !linked.contains('|')) {
+            if (linked is String &&
+                linked.isNotEmpty &&
+                !linked.contains('|')) {
               titles.add(linked);
             }
           }
@@ -172,12 +196,42 @@ class WikiRepository {
     List<String> titles,
   ) async {
     if (titles.isEmpty) return const [];
-    final payload = await _get('$languageCode.wikipedia.org', '/w/api.php', {
-      'action': 'query',
-      'titles': titles.join('|'),
-      ..._articleProps(limit: titles.length.clamp(1, 20)),
-    });
-    return _articlesFromQuery(payload, languageCode);
+    final cached = await _cache.readArticles(
+      languageCode,
+      ArticleSource.wikipedia,
+      titles,
+    );
+    final missing = [
+      for (final title in titles)
+        if (!cached.containsKey(title)) title,
+    ];
+    final fetched = <WikiArticle>[];
+    if (missing.isNotEmpty) {
+      try {
+        final payload =
+            await _get('$languageCode.wikipedia.org', '/w/api.php', {
+              'action': 'query',
+              'titles': missing.join('|'),
+              ..._articleProps(limit: missing.length.clamp(1, 20)),
+            });
+        fetched.addAll(_articlesFromQuery(payload, languageCode));
+        await _cache.saveArticles(fetched);
+      } catch (error) {
+        if (cached.isEmpty) rethrow;
+      }
+    }
+    final byTitle = {...cached};
+    for (final article in fetched) {
+      byTitle[article.title] = article;
+    }
+    final used = <String>{};
+    return [
+      for (final title in titles)
+        if (byTitle[title] != null && used.add(byTitle[title]!.title))
+          byTitle[title]!,
+      for (final article in fetched)
+        if (used.add(article.title)) article,
+    ];
   }
 
   Future<List<WikiArticle>?> _fetchRandomArticles(
@@ -221,14 +275,15 @@ class WikiRepository {
       ];
       if (ids.isEmpty) continue;
       try {
-        final payload = await _get('$languageCode.wikipedia.org', '/w/api.php', {
-          'action': 'query',
-          'pageids': ids.join('|'),
-          'prop': 'pageviews',
-          'pvipdays': '14',
-          'format': 'json',
-          'formatversion': '2',
-        });
+        final payload =
+            await _get('$languageCode.wikipedia.org', '/w/api.php', {
+              'action': 'query',
+              'pageids': ids.join('|'),
+              'prop': 'pageviews',
+              'pvipdays': '14',
+              'format': 'json',
+              'formatversion': '2',
+            });
         final byId = <int, Object?>{};
         for (final page in _queryPages(payload)) {
           final id = page['pageid'];
@@ -316,10 +371,7 @@ class WikiRepository {
         .toList();
   }
 
-  WikiArticle _articleFromPage(
-    Map<String, dynamic> page,
-    String languageCode,
-  ) {
+  WikiArticle _articleFromPage(Map<String, dynamic> page, String languageCode) {
     final title = (page['title'] as String? ?? '').trim();
     final thumbnail = page['thumbnail'] as Map<String, dynamic>?;
     return WikiArticle(
@@ -328,7 +380,8 @@ class WikiRepository {
       languageCode: languageCode,
       description: page['description'] as String?,
       thumbnailUrl: thumbnail?['source'] as String?,
-      pageUrl: page['fullurl'] as String? ??
+      pageUrl:
+          page['fullurl'] as String? ??
           'https://$languageCode.wikipedia.org/wiki/${Uri.encodeComponent(title)}',
     );
   }
@@ -384,8 +437,174 @@ class WikiRepository {
     );
   }
 
+  Future<List<WikiArticle>> voyageArticles(String languageCode) async {
+    final edition = voyageEdition(languageCode);
+    try {
+      final articles = await _fetchVoyageArticles(edition);
+      if (articles.isNotEmpty) {
+        await _cache.saveArticles(articles);
+        await _cache.saveBatch(edition, WikiCache.voyageSlot, articles);
+      }
+      return articles;
+    } catch (_) {
+      final cached = await _cache.readBatch(edition, WikiCache.voyageSlot);
+      if (cached.isNotEmpty) return cached;
+      throw Exception('Unable to load Wikivoyage articles.');
+    }
+  }
+
+  Future<List<WikiArticle>> _fetchVoyageArticles(String languageCode) async {
+    final category = voyagePhrasebookCategories[languageCode];
+    final payload = await _get('$languageCode.wikivoyage.org', '/w/api.php', {
+      'action': 'query',
+      'generator': 'random',
+      'grnnamespace': '0',
+      'grnlimit': '12',
+      'prop': category == null
+          ? 'extracts|pageimages|info|description|pageprops|images'
+          : 'extracts|pageimages|info|description|pageprops|images|categories',
+      'exintro': '1',
+      'explaintext': '1',
+      'exlimit': '12',
+      'exchars': '1000',
+      'ppprop': 'disambiguation',
+      'piprop': 'thumbnail',
+      'pithumbsize': '800',
+      'pilimit': 'max',
+      'imlimit': 'max',
+      'inprop': 'url',
+      'format': 'json',
+      'formatversion': '2',
+      if (category != null) ...{'cllimit': 'max', 'clcategories': category},
+    });
+    final pages = [
+      for (final page in _queryPages(payload))
+        if (isVoyageDestination(page)) page,
+    ];
+    await _fillVoyageLeads(languageCode, pages);
+    final readable = [
+      for (final page in pages)
+        if (guideReadable((page['extract'] as String? ?? '').trim())) page,
+    ];
+    await _fillVoyageImages(readable);
+    return articlesFromVoyagePages(readable, languageCode);
+  }
+
+  Future<void> _fillVoyageLeads(
+    String languageCode,
+    List<Map<String, dynamic>> pages,
+  ) async {
+    final empty = pages
+        .where((page) {
+          final extract = page['extract'];
+          return extract is! String || extract.trim().isEmpty;
+        })
+        .take(8)
+        .toList();
+    if (empty.isEmpty) return;
+    await Future.wait(
+      empty.map((page) async {
+        final id = page['pageid'];
+        if (id is! int) return;
+        try {
+          final payload =
+              await _get('$languageCode.wikivoyage.org', '/w/api.php', {
+                'action': 'query',
+                'pageids': id.toString(),
+                'prop': 'extracts',
+                'explaintext': '1',
+                'exsectionformat': 'wiki',
+                'exchars': '1200',
+                'format': 'json',
+                'formatversion': '2',
+              });
+          final rows = _queryPages(payload);
+          final text = rows.isEmpty ? null : rows.first['extract'];
+          if (text is String) page['extract'] = guideLead(text);
+        } catch (_) {}
+      }),
+    );
+  }
+
+  Future<void> _fillVoyageImages(List<Map<String, dynamic>> pages) async {
+    final picks = <Map<String, dynamic>, List<String>>{};
+    final needed = <String>[];
+    for (final page in pages) {
+      final thumbnail = page['thumbnail'];
+      if (thumbnail is Map &&
+          thumbnail['source'] is String &&
+          (thumbnail['source'] as String).trim().isNotEmpty) {
+        continue;
+      }
+      final names = voyageImageCandidates(page);
+      if (names.isEmpty) continue;
+      picks[page] = names;
+      needed.addAll(names);
+    }
+    if (needed.isEmpty) return;
+    final unique = needed.toSet().toList();
+    final known = <String, Map<String, dynamic>>{};
+    for (var start = 0; start < unique.length; start += 20) {
+      final chunk = unique.skip(start).take(20).toList();
+      try {
+        final payload = await _get('commons.wikimedia.org', '/w/api.php', {
+          'action': 'query',
+          'titles': chunk.join('|'),
+          'prop': 'imageinfo',
+          'iiprop': 'url|size',
+          'iiurlwidth': '960',
+          'format': 'json',
+          'formatversion': '2',
+        });
+        final renamed = <String, String>{};
+        final normalized = payload['query']?['normalized'];
+        if (normalized is List) {
+          for (final item in normalized) {
+            if (item is! Map) continue;
+            final from = item['from'];
+            final to = item['to'];
+            if (from is String && to is String) renamed[from] = to;
+          }
+        }
+        final resolved = <String, Map<String, dynamic>>{};
+        for (final page in _queryPages(payload)) {
+          final title = page['title'];
+          final info = page['imageinfo'];
+          if (title is! String ||
+              info is! List ||
+              info.isEmpty ||
+              info.first is! Map) {
+            continue;
+          }
+          resolved[title] = Map<String, dynamic>.from(info.first as Map);
+        }
+        for (final name in chunk) {
+          final info = resolved[renamed[name] ?? name];
+          if (info != null) known[name] = info;
+        }
+      } catch (_) {}
+    }
+    for (final entry in picks.entries) {
+      for (final name in entry.value) {
+        final info = known[name];
+        if (info == null) continue;
+        final width = info['width'];
+        final height = info['height'];
+        final url = info['thumburl'] ?? info['url'];
+        if (url is! String || url.trim().isEmpty) continue;
+        if (width is! num || height is! num || width < 240 || height < 100) {
+          continue;
+        }
+        entry.key['thumbnail'] = {'source': url.trim()};
+        break;
+      }
+    }
+  }
+
   Future<List<WikiArticle>> onThisDay(String languageCode) async {
     final today = DateTime.now();
+    final cached = await _cache.readOnThisDay(languageCode, today);
+    if (cached != null) return cached;
     final month = today.month.toString().padLeft(2, '0');
     final day = today.day.toString().padLeft(2, '0');
     final response = await _client
@@ -409,7 +628,10 @@ class WikiRepository {
     if (payload is! Map<String, dynamic>) {
       throw Exception('Unable to load on this day.');
     }
-    return articlesFromOnThisDay(payload, languageCode, today);
+    final articles = articlesFromOnThisDay(payload, languageCode, today);
+    await _cache.saveArticles(articles);
+    await _cache.saveOnThisDay(languageCode, today, articles);
+    return articles;
   }
 
   void dispose() => _client.close();

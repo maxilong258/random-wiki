@@ -49,8 +49,7 @@ class ArticleDepthControl extends StatelessWidget {
             max: ArticleDepth.values.length - 1,
             divisions: ArticleDepth.values.length - 1,
             label: strings.depthLabel(depth),
-            onChanged: (value) =>
-                onChanged(ArticleDepth.values[value.round()]),
+            onChanged: (value) => onChanged(ArticleDepth.values[value.round()]),
           ),
         ),
         Row(

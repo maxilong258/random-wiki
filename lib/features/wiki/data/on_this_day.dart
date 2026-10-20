@@ -1,3 +1,4 @@
+import '../../../core/localization/app_text.dart';
 import '../domain/wiki_article.dart';
 
 List<WikiArticle> articlesFromOnThisDay(
@@ -68,12 +69,8 @@ int _year(Map<String, dynamic> event) {
   return int.tryParse('$year') ?? 0;
 }
 
-String _eyebrow(String languageCode, int year, int yearsAgo) {
-  final chinese = languageCode.startsWith('zh');
-  if (yearsAgo <= 0) return chinese ? '$year · 今年' : '$year · This year';
-  if (!chinese && yearsAgo == 1) return '$year · 1 year ago';
-  return chinese ? '$year · $yearsAgo年前' : '$year · $yearsAgo years ago';
-}
+String _eyebrow(String languageCode, int year, int yearsAgo) =>
+    '$year · ${yearsAgoPhrase(languageCode, yearsAgo)}';
 
 String? _thumbnail(Map<String, dynamic> page) {
   final thumbnail = page['thumbnail'];

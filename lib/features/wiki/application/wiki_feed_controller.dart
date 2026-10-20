@@ -144,14 +144,16 @@ class WikiFeedController extends ChangeNotifier {
 
   Future<int> _appendUnique(int count, int generation) async {
     final skip = _readershipSkip;
-    final batch = await _repository.randomArticles(
-      _languageCode,
-      count: count,
-      depth: _depth,
-      skip: skip,
-    );
+    final batch = _mode == WikiFeedMode.voyage
+        ? await _repository.voyageArticles(_languageCode)
+        : await _repository.randomArticles(
+            _languageCode,
+            count: count,
+            depth: _depth,
+            skip: skip,
+          );
     if (generation != _generation) return 0;
-    if (articleDepthUsesVitalList(_depth)) {
+    if (_mode == WikiFeedMode.random && articleDepthUsesVitalList(_depth)) {
       _readershipSkip = skip + depthFetchCount(count);
     }
     var added = 0;

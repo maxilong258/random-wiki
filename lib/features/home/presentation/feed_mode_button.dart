@@ -44,4 +44,5 @@ class FeedModeButton extends StatelessWidget {
 String _label(AppStrings strings, WikiFeedMode mode) => switch (mode) {
   WikiFeedMode.random => strings.appName,
   WikiFeedMode.onThisDay => strings.onThisDay,
+  WikiFeedMode.voyage => strings.wikiGuide,
 };

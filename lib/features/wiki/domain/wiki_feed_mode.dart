@@ -1,1 +1,1 @@
-enum WikiFeedMode { random, onThisDay }
+enum WikiFeedMode { random, onThisDay, voyage }
