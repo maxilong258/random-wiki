@@ -2,52 +2,44 @@
 
 **简体中文** | [English](README.en.md)
 
-上下滑刷随机维基百科词条。这不是维基媒体基金会的官方应用。
+Random Wiki 的共同仓库，包含 Flutter 应用和独立网页版两个项目。
 
-## 下载
+## 目录结构
 
-- [直接下载（推荐，64 位手机）](https://github.com/maxilong258/random-wiki/releases/latest/download/random-wiki-arm64-v8a.apk)
-- [所有版本与架构](https://github.com/maxilong258/random-wiki/releases)
+```text
+random-wiki/
+├── flutter/       # 现有 Flutter 应用：源码、测试、平台工程、素材与开发说明
+│   ├── lib/
+│   ├── test/
+│   ├── android/
+│   ├── ios/
+│   ├── web/       # Flutter 自带的 Web 平台工程
+│   ├── pubspec.yaml
+│   └── dev.sh
+├── web/           # 独立网页版 Random Wiki，尚未开始实现
+├── README.md
+├── README.en.md
+└── LICENSE
+```
 
-Release 里的安装包带版本号，例如 `random-wiki-1.0.4-arm64-v8a.apk`：
+两个项目共用根目录的 Git 仓库和许可证，各自的源码、依赖和构建配置放在各自目录中。
 
-- **arm64-v8a**：现在的手机几乎都用这个
-- **armeabi-v7a**：较老的 32 位手机
-- **x86_64**：电脑模拟器
+## Flutter 应用
 
-安装未知来源 APK 时，按系统提示允许即可。Google Play 如已上架，也可以在商店搜索 **Random Wiki**。
+应用介绍、截图和下载见 [Flutter 项目说明](flutter/README.md)，开发和发版见 [Flutter 开发说明](flutter/DEVELOPMENT.md)。
 
-## 截图
-
-<p>
-  <img src="store/screenshots/01-home.png" width="180" alt="Home" />
-  <img src="store/screenshots/02-article.png" width="180" alt="Article" />
-  <img src="store/screenshots/03-history.png" width="180" alt="History" />
-  <img src="store/screenshots/04-settings.png" width="180" alt="Settings" />
-</p>
-
-## 功能
-
-- 上下滑切换随机词条
-- 中文 / English 内容与界面
-- 收藏、阅读历史
-- 浅色、深色、跟随系统
-- 打开维基百科原文
-
-## 内容来源
-
-词条文本和配图来自 [Wikipedia](https://www.wikipedia.org/)，按 [CC BY-SA](https://creativecommons.org/licenses/by-sa/4.0/) 授权。应用内会标明来源语言，例如 `Wikipedia · ZH`。
-
-## 从源码运行
-
-需要安装 [Flutter](https://flutter.dev/docs/get-started/install)。
+从仓库根目录运行：
 
 ```bash
-git clone https://github.com/maxilong258/random-wiki.git
-cd random-wiki
-flutter pub get
-flutter run
+cd flutter
+./dev.sh
 ```
+
+也可以进入 `flutter/` 后执行 `flutter pub get` 和 `flutter run`。
+
+## 独立网页版
+
+[web/](web/README.md) 已预留为独立网站项目目录，后续在这里实现。它与 `flutter/web/` 分开维护。
 
 ## 开源协议
 

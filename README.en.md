@@ -2,52 +2,29 @@
 
 [简体中文](README.md) | **English**
 
-A swipeable random Wikipedia reader for Android. Not affiliated with the Wikimedia Foundation.
+A shared repository for the Flutter app and a separate Random Wiki website.
 
-## Download
+## Projects
 
-- [Download APK (recommended, 64-bit phones)](https://github.com/maxilong258/random-wiki/releases/latest/download/random-wiki-arm64-v8a.apk)
-- [All versions and ABIs](https://github.com/maxilong258/random-wiki/releases)
+- [flutter/](flutter/README.en.md): the existing Flutter app, including source code, tests, platform projects, assets, and development documentation.
+- [web/](web/README.md): reserved for the independent website; implementation has not started.
 
-Release assets include the version in the filename, for example `random-wiki-1.0.4-arm64-v8a.apk`:
+The existing Flutter Web platform files are under `flutter/web/`. They are separate from the new website in the top-level `web/` directory.
 
-- **arm64-v8a**: almost all current phones
-- **armeabi-v7a**: older 32-bit phones
-- **x86_64**: desktop emulators
+Both projects share the Git repository and license at the repository root. Source code, dependencies, and build configuration belong in each project directory.
 
-Allow installation from unknown sources if Android asks. If the app is on Google Play, you can also search for **Random Wiki**.
+## Run the Flutter app
 
-## Screenshots
-
-<p>
-  <img src="store/screenshots/01-home.png" width="180" alt="Home" />
-  <img src="store/screenshots/02-article.png" width="180" alt="Article" />
-  <img src="store/screenshots/03-history.png" width="180" alt="History" />
-  <img src="store/screenshots/04-settings.png" width="180" alt="Settings" />
-</p>
-
-## Features
-
-- Swipe up and down for a random article
-- Chinese / English content and UI
-- Favorites and reading history
-- Light, dark, or follow system
-- Open the original Wikipedia page
-
-## Content
-
-Article text and images come from [Wikipedia](https://www.wikipedia.org/), licensed under [CC BY-SA](https://creativecommons.org/licenses/by-sa/4.0/). The app shows the source language, for example `Wikipedia · EN`.
-
-## Run from source
-
-Install [Flutter](https://flutter.dev/docs/get-started/install) first.
+From the repository root:
 
 ```bash
-git clone https://github.com/maxilong258/random-wiki.git
-cd random-wiki
-flutter pub get
-flutter run
+cd flutter
+./dev.sh
 ```
+
+Alternatively, run `flutter pub get` and `flutter run` inside `flutter/`.
+
+See the [Flutter README](flutter/README.en.md) for downloads and screenshots, and the [development guide](flutter/DEVELOPMENT.md) for development and release instructions.
 
 ## License
 

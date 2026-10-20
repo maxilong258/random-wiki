@@ -1,5 +1,7 @@
 # 本地开发
 
+本文件中的命令默认在 `flutter/` 项目目录执行。从仓库根目录开始时，先运行 `cd flutter`。
+
 当前版本见 `pubspec.yaml` 的 `version` 字段，格式是 `versionName+versionCode`，例如 `1.0.4+6`。
 
 ## 运行
