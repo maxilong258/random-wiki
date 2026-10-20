@@ -1,4 +1,5 @@
 import 'package:flutter/widgets.dart';
+import '../../features/wiki/domain/article_depth.dart';
 
 class AppStrings {
   const AppStrings._(this.isChinese);
@@ -14,7 +15,12 @@ class AppStrings {
   String get favorites => isChinese ? '收藏列表' : 'Favorites';
   String get favoriteTab => isChinese ? '收藏' : 'Saved';
   String get history => isChinese ? '阅读历史' : 'History';
-  String get settings => isChinese ? '语言与外观' : 'Language & appearance';
+  String get settings => isChinese ? '设置' : 'Settings';
+  String get explore => isChinese ? '探索' : 'Explore';
+  String get articleDepth => isChinese ? '文章深度' : 'Article depth';
+  String get articleDepthHint => isChinese
+      ? '热门和熟知来自维基基础词条，其余按每天阅读量。'
+      : 'Popular and familiar topics come from vital articles. The rest follow daily readership.';
   String get settingsTooltip => isChinese ? '设置' : 'Settings';
   String get saveCurrent => isChinese ? '收藏当前词条' : 'Save this article';
   String get removeCurrent => isChinese ? '取消收藏' : 'Remove from favorites';
@@ -29,6 +35,13 @@ class AppStrings {
   String get followSystem => isChinese ? '跟随系统' : 'System';
   String get light => isChinese ? '浅色' : 'Light';
   String get dark => isChinese ? '深色' : 'Dark';
+  String depthLabel(ArticleDepth depth) => switch (depth) {
+    ArticleDepth.popular => isChinese ? '热门' : 'Popular',
+    ArticleDepth.familiar => isChinese ? '熟知' : 'Familiar',
+    ArticleDepth.balanced => isChinese ? '均衡' : 'Balanced',
+    ArticleDepth.niche => isChinese ? '小众' : 'Niche',
+    ArticleDepth.obscure => isChinese ? '冷门' : 'Obscure',
+  };
   String get noFavorites => isChinese ? '还没有收藏词条' : 'No saved articles yet';
   String get noHistory =>
       isChinese ? '阅读过的词条会出现在这里' : 'Articles you read will appear here';

@@ -12,7 +12,6 @@ Future<void> bootstrap(Widget app) async {
   WidgetsFlutterBinding.ensureInitialized();
   final preferences = AppPreferences(await SharedPreferences.getInstance());
   await Hive.initFlutter();
-  final articleCache = await Hive.openBox<dynamic>('article_cache');
   final savedArticles = await Hive.openBox<dynamic>('saved_articles');
   final readingHistory = await Hive.openBox<dynamic>('reading_history');
 
@@ -23,7 +22,7 @@ Future<void> bootstrap(Widget app) async {
           create: (_) => AppSettingsController(preferences),
         ),
         Provider(
-          create: (_) => WikiRepository(articleCache),
+          create: (_) => WikiRepository(),
           dispose: (_, repository) => repository.dispose(),
         ),
         ChangeNotifierProvider(

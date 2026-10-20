@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../../core/localization/app_strings.dart';
 import '../../../core/widgets/app_circle_icon_button.dart';
 import '../application/app_settings_controller.dart';
+import 'article_depth_control.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -58,6 +59,11 @@ class SettingsScreen extends StatelessWidget {
             ),
             onSelectionChanged: (value) =>
                 settings.setLanguageCode(value.first),
+          ),
+          const SizedBox(height: 28),
+          ArticleDepthControl(
+            depth: settings.articleDepth,
+            onChanged: settings.setArticleDepth,
           ),
           const SizedBox(height: 28),
           Text(

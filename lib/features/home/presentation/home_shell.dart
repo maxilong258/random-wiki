@@ -36,6 +36,7 @@ class _HomeShellState extends State<HomeShell> {
     final feed = WikiFeedController(
       context.read<WikiRepository>(),
       _settings!.languageCode,
+      _settings!.articleDepth,
     );
     _feed = feed;
     unawaited(feed.start());
@@ -50,9 +51,10 @@ class _HomeShellState extends State<HomeShell> {
 
   void _onSettingsChanged() {
     final feed = _feed;
-    final code = _settings?.languageCode;
-    if (feed == null || code == null) return;
-    unawaited(feed.changeLanguage(code));
+    final settings = _settings;
+    if (feed == null || settings == null) return;
+    unawaited(feed.changeLanguage(settings.languageCode));
+    unawaited(feed.changeDepth(settings.articleDepth));
   }
 
   @override

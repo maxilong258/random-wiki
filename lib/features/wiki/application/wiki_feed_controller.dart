@@ -2,17 +2,20 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import '../data/wiki_repository.dart';
+import '../domain/article_depth.dart';
 import '../domain/wiki_article.dart';
 import '../domain/wiki_feed_mode.dart';
 
 class WikiFeedController extends ChangeNotifier {
-  WikiFeedController(this._repository, this._languageCode);
+  WikiFeedController(this._repository, this._languageCode, this._depth);
 
   final WikiRepository _repository;
   final List<WikiArticle> _articles = [];
   final Set<String> _seenTitles = {};
   String _languageCode;
+  ArticleDepth _depth;
   WikiFeedMode _mode = WikiFeedMode.random;
+  int _readershipSkip = 0;
   int _currentIndex = 0;
   int _epoch = 0;
   bool _isLoading = true;
@@ -51,9 +54,17 @@ class WikiFeedController extends ChangeNotifier {
     await _reload();
   }
 
+  Future<void> changeDepth(ArticleDepth depth) async {
+    if (depth == _depth) return;
+    _depth = depth;
+    if (_mode != WikiFeedMode.random) return;
+    await _reload();
+  }
+
   Future<void> _reload() async {
     _generation++;
     _epoch++;
+    _readershipSkip = 0;
     _currentIndex = 0;
     _isLoading = true;
     _inFlight = false;
@@ -132,11 +143,17 @@ class WikiFeedController extends ChangeNotifier {
   }
 
   Future<int> _appendUnique(int count, int generation) async {
+    final skip = _readershipSkip;
     final batch = await _repository.randomArticles(
       _languageCode,
       count: count,
+      depth: _depth,
+      skip: skip,
     );
     if (generation != _generation) return 0;
+    if (articleDepthUsesVitalList(_depth)) {
+      _readershipSkip = skip + depthFetchCount(count);
+    }
     var added = 0;
     for (final article in batch) {
       if (_seenTitles.add(article.title)) {
