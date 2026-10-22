@@ -39,13 +39,17 @@ pnpm build
 
 ## Cloudflare Pages
 
-与仓库其他项目分开部署。Pages 的项目根目录设为 `web`，构建命令 `pnpm build`，产物目录 `out`。也可以在登录 Wrangler 并建立 Pages 项目后运行：
+线上地址：[randomwiki.maxilong.dev](https://randomwiki.maxilong.dev/)。Pages 项目为 `random-wiki`，生产分支为 `main`，默认域名为 [random-wiki.pages.dev](https://random-wiki.pages.dev/)。
+
+当前采用本地构建、Wrangler 直接上传，未连接 Git 自动部署。在本目录登录 Wrangler 后，运行以下命令即可更新线上版本：
 
 ```bash
 CF_PAGES_PROJECT=random-wiki ./prod.sh
 ```
 
-发布脚本不会提交或推送 Git。本次实现只在本地预览，尚未创建或部署线上 Pages 项目。
+脚本先执行 `pnpm build`，再上传 `out/`，不会提交或推送 Git，也不会部署 Flutter 项目。`randomwiki.maxilong.dev` 已登记为 Pages 自定义域名，对应的代理 CNAME 指向 `random-wiki.pages.dev`，后续更新内容无需修改 DNS。
+
+访问统计统一使用 `maxilong.dev` 域名层自动注入的 Cloudflare Web Analytics。在 Cloudflare 的 Web Analytics 中选择 `maxilong.dev`，再按 Host 筛选 `randomwiki.maxilong.dev`。Pages 项目的独立统计保持关闭，源码中无需添加统计脚本；判断是否接入时应同时检查域名层配置和浏览器实际加载的脚本。当前域名统计沿用排除欧盟访客的设置。
 
 ## 项目关系与许可
 

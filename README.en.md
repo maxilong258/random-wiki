@@ -28,6 +28,8 @@ See the [Flutter README](flutter/README.en.md) for downloads and screenshots, an
 
 ## Run the website
 
+Live website: [randomwiki.maxilong.dev](https://randomwiki.maxilong.dev/), hosted on Cloudflare Pages.
+
 ```bash
 cd web
 pnpm install --frozen-lockfile

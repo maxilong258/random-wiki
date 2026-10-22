@@ -41,6 +41,8 @@ cd flutter
 
 [web/](web/README.md) 是独立的 Next.js 网站，与 `flutter/web/` 分开维护。
 
+线上地址：[randomwiki.maxilong.dev](https://randomwiki.maxilong.dev/)，部署在 Cloudflare Pages。
+
 ```bash
 cd web
 pnpm install --frozen-lockfile
