@@ -16,7 +16,7 @@ random-wiki/
 │   ├── web/       # Flutter 自带的 Web 平台工程
 │   ├── pubspec.yaml
 │   └── dev.sh
-├── web/           # 独立网页版 Random Wiki，尚未开始实现
+├── web/           # 独立 Next.js 网页版 Random Wiki
 ├── README.md
 ├── README.en.md
 └── LICENSE
@@ -39,7 +39,15 @@ cd flutter
 
 ## 独立网页版
 
-[web/](web/README.md) 已预留为独立网站项目目录，后续在这里实现。它与 `flutter/web/` 分开维护。
+[web/](web/README.md) 是独立的 Next.js 网站，与 `flutter/web/` 分开维护。
+
+```bash
+cd web
+pnpm install --frozen-lockfile
+./dev.sh
+```
+
+本地地址：`http://127.0.0.1:3100`。网页版支持三种内容流、收藏、历史、15 种语言和主题设置，公开维基内容由浏览器直接请求。
 
 ## 开源协议
 
